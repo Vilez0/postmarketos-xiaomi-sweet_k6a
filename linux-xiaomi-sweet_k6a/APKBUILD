@@ -1,0 +1,84 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/(CHANGEME!)
+
+pkgname=linux-xiaomi-sweet_k6a
+pkgver=4.14.336
+pkgrel=0
+pkgdesc="Xiaomi Redmi Note 12 Pro 4g kernel fork"
+arch="aarch64"
+_carch="arm64"
+_flavor="xiaomi-sweet_k6a"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	clang
+	llvm
+	lld
+	python3
+	bash
+	bc
+	bison
+	linux-headers
+	dtbtool
+	devicepkg-dev
+	findutils
+	flex
+	openssl-dev
+	perl
+	xz
+"
+
+# Source
+_repository="kernel_xiaomi_sweet_k6a"
+_commit="3ba7cd33db96338fd56ff8ad097a581a13c73bde"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/Pulkit077/$_repository/archive/$_commit.tar.gz
+	$_config
+	fix_compilation.patch
+"
+builddir="$srcdir/$_repository-$_commit/"
+_outdir="out"
+
+prepare() {
+	default_prepare
+	REPLACE_GCCH=0 . downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make -j$(nproc) LLVM_IAS=1 HOSTAR=llvm-ar HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CC="ccache clang" LD=ld.lld LD_ARM32=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O="$_outdir" ARCH="$_carch"  KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" \
+		"$_flavor" "$_outdir"
+
+	# zImage (find the right one)
+	cd "$builddir/$_outdir/arch/$_carch/boot"
+	_target="$pkgdir/boot/vmlinuz-$_flavor"
+	for _zimg in Image.gz-dtb Image; do
+		[ -e "$_zimg" ] || continue
+		msg "zImage found: $_zimg"
+		install -Dm644 "$_zimg" "$_target"
+		break
+	done
+	if ! [ -e "$_target" ]; then
+		error "Could not find zImage in $PWD!"
+		return 1
+	fi
+
+	# Master DTB
+	install -Dm644 "dts/qcom/xiaomi-sdmmagpie.dtb" \
+		"$pkgdir/boot/dtbs/xiaomi-sdmmagpie.dtb"
+	install -Dm644 "dts/qcom/xiaomi-sdmmagpie.dtb" \
+		"$pkgdir/usr/share/dtb/xiaomi-sdmmagpie.dtb"
+
+}
+
+sha512sums="
+eb503287b419cd8ddcf06ca8e98d8a4bf9ea909685cdd66f214ef8531dfb6146bd454853e72ba0c54d8c6242812ba4d2691b5d211c3f68829fe7faa97d66f8cb  linux-xiaomi-sweet_k6a-3ba7cd33db96338fd56ff8ad097a581a13c73bde.tar.gz
+29a9cbeecc769ffd53a6326f1aff0de39e881a31274dea423db40542dfbe7fb2df9abe66e102f483a45fc7e13b0dc41ba52ae4b89f6ad1760f7913ddf995f161  config-xiaomi-sweet_k6a.aarch64
+263089fa80653bce4b4d2c3d74f14ed958154042676fae379f26a44b6ddbe32a0d78b37eda9a2ea1471b2e9ac0d0d812093963dd2f423decefc7ddc4cb438e18  fix_compilation.patch
+"

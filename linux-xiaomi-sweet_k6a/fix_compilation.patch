@@ -1,0 +1,29 @@
+diff --git a/drivers/input/touchscreen/k6_focaltech_3658u/focaltech_core.c b/drivers/input/touchscreen/k6_focaltech_3658u/focaltech_core.c
+index 4134b9975..14851fdb2 100644
+--- a/drivers/input/touchscreen/k6_focaltech_3658u/focaltech_core.c
++++ b/drivers/input/touchscreen/k6_focaltech_3658u/focaltech_core.c
+@@ -64,6 +64,11 @@
+ #define FTS_I2C_VTG_MAX_UV                  1800000
+ #endif /*  */
+ 
++#define Touch_Expert_Mode 0
++#define Touch_Follow_Performance 1
++#define Touch_Tap_Sensitivity 5
++#define Touch_Aim_Sensitivity 10
++#define Touch_Tap_Stability 5
+ /*****************************************************************************
+ * Global variable or extern global variabls/functions
+ *****************************************************************************/
+diff --git a/scripts/kconfig/lkc.h b/scripts/kconfig/lkc.h
+index e2fc50ae4..ccbbadf9e 100644
+--- a/scripts/kconfig/lkc.h
++++ b/scripts/kconfig/lkc.h
+@@ -12,7 +12,7 @@
+ # include <libintl.h>
+ #else
+ # include <features.h>
+-__attribute_format_arg__(1)
++//__attribute_format_arg__(1)
+ static inline const char *gettext(const char *txt) { return txt; }
+ static inline void textdomain(const char *domainname) {}
+ static inline void bindtextdomain(const char *name, const char *dir) {}
