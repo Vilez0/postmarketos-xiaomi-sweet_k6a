@@ -1,3 +1,2 @@
-(EXPERIMENTAL, WONT BOOT)
-
-a postmarketos tree for sweet_k6a aka Redmi Note 12 Pro 4G
+# The packages in this repo will not boot
+for working trees see: [sm7150-mainline/pmaports](https://github.com/sm7150-mainline/pmaports)
